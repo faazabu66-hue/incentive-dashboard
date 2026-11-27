@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Service Advisor Incentive Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--navy:#12263f;--bg:#edf1f6;--ink:#17283b;--mut:#66788c;--bd:#d9e1ec;--teal:#0e9f8e;--amber:#f2a30f;--blue:#2457d6}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 "Segoe UI",system-ui,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--navy);color:#fff;display:flex;align-items:center;gap:14px;padding:10px 20px;position:sticky;top:0;z-index:5;flex-wrap:wrap}
+h1{font-size:17px;margin:0;font-weight:650;flex:1;min-width:220px}
+h1 small{display:block;font-weight:400;color:#9fb2c8;font-size:12px}
+nav{display:flex;gap:4px}
+button,select,input{font:inherit}
+.tab,.btn{background:transparent;color:#cfdbea;border:1px solid #38506d;border-radius:6px;padding:6px 14px;cursor:pointer}
+.tab.on{background:#fff;color:var(--navy);border-color:#fff;font-weight:600}
+.btn:hover,.tab:hover{border-color:#fff}
+#st{font-size:12px;color:#9fb2c8;display:flex;align-items:center;gap:6px}
+#st i{width:8px;height:8px;border-radius:50%;background:#2ecc71;display:inline-block}
+#st.err i{background:#e74c3c}
+main{padding:14px;max-width:1560px;margin:auto}
+.pg{display:none}.pg.on{display:grid;gap:14px;grid-template-columns:repeat(12,1fr)}
+.c{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:14px;min-width:0}
+.c h3{margin:0 0 8px;font-size:13.5px;font-weight:650}
+.s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}.s5{grid-column:span 5}.s6{grid-column:span 6}.s7{grid-column:span 7}.s8{grid-column:span 8}.s12{grid-column:span 12}
+.k{border-left:4px solid var(--blue)}
+.k .l{color:var(--mut);font-size:12px}.k .v{font-size:24px;font-weight:700;margin:2px 0}.k .u{color:var(--mut);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch{position:relative;height:290px}
+.seg{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.seg button,.chip{border:1px solid var(--bd);background:#fff;border-radius:16px;padding:4px 14px;cursor:pointer;color:var(--ink)}
+.seg button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.tw{overflow:auto;max-height:520px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--bd);text-align:right;white-space:nowrap}
+th{position:sticky;top:0;background:#f5f8fc;cursor:pointer;font-weight:600}
+th:nth-child(-n+3),td:nth-child(-n+3){text-align:left}
+tr.me td{background:#eef4ff}
+.pill{padding:2px 9px;border-radius:10px;font-size:12px;color:#fff;font-weight:600}
+.pf{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.pf div{background:#f5f8fc;border-radius:6px;padding:8px 10px}.pf b{display:block;font-size:18px}.pf span{color:var(--mut);font-size:12px}
+.nm{font-size:20px;font-weight:700}
+#ai{position:fixed;right:0;top:0;bottom:0;width:360px;max-width:100%;background:#fff;border-left:1px solid var(--bd);z-index:9;display:none;flex-direction:column;box-shadow:-6px 0 20px #0002}
+#ai.on{display:flex}
+#ai header{position:static;padding:12px 14px}
+#msgs{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.m{padding:8px 11px;border-radius:8px;max-width:92%}.m.u{background:var(--navy);color:#fff;align-self:flex-end}.m.a{background:#eef2f7}
+#ai form{display:flex;gap:6px;padding:10px;border-top:1px solid var(--bd)}
+#ai input{flex:1;padding:8px;border:1px solid var(--bd);border-radius:6px}
+#ai form button{background:var(--teal);color:#fff;border:0;border-radius:6px;padding:0 14px;cursor:pointer}
+#err{display:none;background:#fdecea;color:#8a1c12;padding:10px 14px;margin:14px;border-radius:6px}
+select{padding:6px 10px;border:1px solid var(--bd);border-radius:6px;min-width:240px}
+@media(max-width:1000px){.pg>*{grid-column:span 12!important}.pg>.s2{grid-column:span 6!important}}
+@media print{header,#ai,.noprint{display:none!important}body{background:#fff}.pg{display:none!important}#p3{display:grid!important}}
+</style></head><body>
+<header>
+ <h1>Service Advisor Incentive Dashboard<small>PMGR and BP teams</small></h1>
+ <nav><button class="tab on" data-p="1">Overview</button><button class="tab" data-p="2">Team analysis</button><button class="tab" data-p="3">Individual report</button></nav>
+ <div id="st"><i></i><span>Loading…</span></div>
+ <button class="btn" id="rf">Refresh</button><button class="btn" id="aib">Ask AI</button>
+</header>
+<div id="err"></div>
+<main>
+<section class="pg on" id="p1">
+ <div class="c k s2"><div class="l">Total payout</div><div class="v" id="k1"></div><div class="u" id="u1"></div></div>
+ <div class="c k s2" style="border-color:var(--teal)"><div class="l">Total TA</div><div class="v" id="k2"></div><div class="u" id="u2"></div></div>
+ <div class="c k s2" style="border-color:var(--amber)"><div class="l">Service advisors</div><div class="v" id="k3"></div><div class="u" id="u3"></div></div>
+ <div class="c k s2"><div class="l">Average KPI</div><div class="v" id="k4"></div><div class="u" id="u4"></div></div>
+ <div class="c k s2" style="border-color:var(--teal)"><div class="l">Top earner</div><div class="v" id="k5" style="font-size:18px;padding:5px 0"></div><div class="u" id="u5"></div></div>
+ <div class="c k s2" style="border-color:var(--amber)"><div class="l">With no payout</div><div class="v" id="k6"></div><div class="u" id="u6"></div></div>
+ <div class="c s4"><h3>Payout by team</h3><div class="ch"><canvas id="c1"></canvas></div></div>
+ <div class="c s8"><h3>Incentive amount by category</h3><div class="ch"><canvas id="c2"></canvas></div></div>
+ <div class="c s7"><h3>Top 10 by payout</h3><div class="ch"><canvas id="c3"></canvas></div></div>
+ <div class="c s5"><h3>Slab distribution (all categories)</h3><div class="ch"><canvas id="c4"></canvas></div></div>
+</section>
+<section class="pg" id="p2">
+ <div class="c s12 seg" id="seg"><b>Team</b><button data-t="All" class="on">All</button><button data-t="PMGR">PMGR</button><button data-t="BP">BP</button></div>
+ <div class="c s8"><h3>Incentive mix per advisor</h3><div class="ch"><canvas id="d1"></canvas></div></div>
+ <div class="c s4"><h3>KPI score (%)</h3><div class="ch"><canvas id="d2"></canvas></div></div>
+ <div class="c s5"><h3>Category share</h3><div class="ch"><canvas id="d3"></canvas></div></div>
+ <div class="c s7"><h3>Advisors per slab in each category</h3><div class="ch"><canvas id="d4"></canvas></div></div>
+ <div class="c s12"><h3>All advisors (click a heading to sort, click a row to open the report)</h3><div class="tw"><table id="tb"></table></div></div>
+</section>
+<section class="pg" id="p3">
+ <div class="c s12 seg noprint"><b>Advisor</b><select id="sel"></select><button class="chip" id="cp">Copy link</button><button class="chip" id="wa">Share on WhatsApp</button><button class="chip" onclick="print()">Print / save PDF</button></div>
+ <div class="c s4"><div class="nm" id="pn"></div><div class="u" id="pm" style="color:var(--mut)"></div><div class="pf" id="pf"></div></div>
+ <div class="c s4"><h3>Where the incentive comes from</h3><div class="ch"><canvas id="e1"></canvas></div></div>
+ <div class="c s4"><h3>You vs team average</h3><div class="ch"><canvas id="e2"></canvas></div></div>
+ <div class="c s12"><h3>Category details</h3><div class="tw"><table id="pt"></table></div></div>
+</section>
+</main>
+<aside id="ai">
+ <header><h1 style="font-size:15px">Ask AI<small>Answers from your sheet, no external service</small></h1><button class="btn" id="aix">Close</button></header>
+ <div id="msgs"></div>
+ <div style="padding:0 10px 8px;display:flex;gap:5px;flex-wrap:wrap" id="chips"></div>
+ <form id="af"><input id="aq" placeholder="e.g. top 5 by payout" autocomplete="off"><button>Ask</button></form>
+</aside>
+<script>
+/* ===== CONFIG: edit these ===== */
+const CONFIG={
+ sheetId:'1jDOQ7_hbd_wjQDp-3tXVbhYuN-T7-neH5-p94Xs55rA',
+ tabs:[{team:'PMGR',tab:'1841229462#gid=1841229462',gid:''},{team:'BP',tab:'1940601097#gid=1940601097',gid:''}],
+ refreshSec:60
+};
+/* ================================ */
+const $=s=>document.querySelector(s),SL=['Elite','Excellence','Qualified','Gate Opener','No slab'],SC=['#0e9f8e','#2457d6','#f2a30f','#8b5cf6','#cbd5e1'],PAL=['#2457d6','#0e9f8e','#f2a30f','#8b5cf6','#e5484d','#06b6d4','#84cc16','#ec4899','#64748b','#f97316'];
+const S={emps:[],cats:[],seg:'All',sort:['payout',-1],cur:null},CH={};
+const fm=n=>'₹'+Math.round(n).toLocaleString('en-IN'),pc=n=>(n*100).toFixed(1)+'%',sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
+const num=s=>{s=String(s??'').trim();if(!s||s==='-')return 0;const n=parseFloat(s.replace(/[,%₹\s]/g,''));return isNaN(n)?0:s.endsWith('%')?n/100:n};
+function csv(t){const r=[];let w=[],c='',q=0;for(let i=0;i<t.length;i++){const h=t[i];if(q){if(h=='"'){if(t[i+1]=='"'){c+='"';i++}else q=0}else c+=h}else if(h=='"')q=1;else if(h==','){w.push(c);c=''}else if(h=='\n'){w.push(c);r.push(w);w=[];c=''}else if(h!='\r')c+=h}w.push(c);r.push(w);return r}
+function parse(rows,team){
+ const hi=rows.findIndex(r=>r.some(c=>c.trim().toLowerCase()==='code'));if(hi<0)throw Error('No header row with "Code" in '+team+' tab');
+ const h2=rows[hi],h1=rows[hi-1]||[],F={achieved:'ach',slab:'slab',inc:'inc',amount:'amt'};let cur='';const map=h2.map((_,j)=>{
+  const a=(h1[j]||'').trim(),b=(h2[j]||'').trim();if(a)cur=a;const k=(b||a).toLowerCase().replace(/[\s%]/g,'');
+  if(k==='code'||k==='name'||k==='ta'||k==='kpi'||k==='payout')return{t:k};
+  if(F[k]&&cur)return{t:F[k],g:cur};return null});
+ const ni=map.findIndex(m=>m&&m.t==='name'),ci=map.findIndex(m=>m&&m.t==='code');
+ return rows.slice(hi+1).filter(r=>(r[ni]||'').trim()&&(r[ci]||'').trim()).map(r=>{
+  const e={team,groups:{},ta:0,kpi:0,payout:0};
+  map.forEach((m,j)=>{if(!m)return;const v=r[j]||'';
+   if(m.t==='code')e.code=v.trim();else if(m.t==='name')e.name=v.trim();
+   else if(m.t==='ta')e.ta+=num(v);else if(m.t==='payout')e.payout+=num(v);else if(m.t==='kpi'){const k=num(v);if(k)e.kpi=k}
+   else{const g=e.groups[m.g]??={ach:0,slab:'No slab',inc:0,amt:0};
+    if(m.t==='slab'){const s=v.trim();g.slab=s&&s!=='-'?s:'No slab'}else g[m.t]=num(v)}});
+  e.total=sum(Object.values(e.groups),g=>g.amt);return e})}
+async function load(){
+ try{let all=[];
+  for(const t of CONFIG.tabs){
+   const u=`https://docs.google.com/spreadsheets/d/${CONFIG.sheetId}/gviz/tq?tqx=out:csv&headers=0&`+(t.gid?'gid='+t.gid:'sheet='+encodeURIComponent(t.tab))+'&_='+Date.now();
+   const res=await fetch(u);if(!res.ok)throw Error('Cannot read "'+t.tab+'" (HTTP '+res.status+')');
+   const txt=await res.text();if(txt.trim().startsWith('<'))throw Error('Sheet is private. Share it as "Anyone with the link can view".');
+   all=all.concat(parse(csv(txt),t.team))}
+  S.emps=all;S.cats=[...new Set(all.flatMap(e=>Object.keys(e.groups)))].filter(c=>all.some(e=>e.groups[c]?.amt));
+  $('#err').style.display='none';$('#st').className='';$('#st span').textContent='Live · updated '+new Date().toLocaleTimeString();
+  render()}
+ catch(x){$('#err').style.display='block';$('#err').textContent=x.message+' Check sheetId and tab names in index.html.';$('#st').className='err';$('#st span').textContent='Not connected'}}
+function mk(id,type,data,opt){CH[id]?.destroy();CH[id]=new Chart($('#'+id),{type,data,options:Object.assign({responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10}}}},opt||{})})}
+const money={ticks:{callback:v=>v>=1000?v/1000+'k':v}},nl={plugins:{legend:{display:false}}};
+const sl=n=>`<span class="pill" style="background:${SC[SL.indexOf(n)]||'#8b5cf6'}">${n}</span>`;
+function render(){p1();p2();p3()}
+function p1(){const E=S.emps,P=E.filter(e=>e.payout>0),top=[...E].sort((a,b)=>b.payout-a.payout)[0],kp=E.filter(e=>e.kpi);
+ $('#k1').textContent=fm(sum(E,e=>e.payout));$('#u1').textContent='Sum of Pay Out columns';
+ $('#k2').textContent=fm(sum(E,e=>e.ta));$('#u2').textContent='Sum of TA columns';
+ $('#k3').textContent=E.length;$('#u3').textContent=['PMGR','BP'].map(t=>t+' '+E.filter(e=>e.team===t).length).join(' · ');
+ $('#k4').textContent=kp.length?pc(sum(kp,e=>e.kpi)/kp.length):'–';$('#u4').textContent=kp.length+' advisors with KPI';
+ $('#k5').textContent=top?top.name:'–';$('#u5').textContent=top?fm(top.payout)+' · '+top.team:'';
+ $('#k6').textContent=E.length-P.length;$('#u6').textContent='of '+E.length+' advisors';
+ const T=['PMGR','BP'];mk('c1','doughnut',{labels:T,datasets:[{data:T.map(t=>sum(E.filter(e=>e.team===t),e=>e.payout)),backgroundColor:[PAL[0],PAL[1]]}]});
+ mk('c2','bar',{labels:S.cats,datasets:[{data:S.cats.map(c=>sum(E,e=>e.groups[c]?.amt||0)),backgroundColor:PAL}]},{...nl,scales:{y:money}});
+ const t10=[...E].sort((a,b)=>b.payout-a.payout).slice(0,10);
+ mk('c3','bar',{labels:t10.map(e=>e.name),datasets:[{data:t10.map(e=>e.payout),backgroundColor:t10.map(e=>e.team==='PMGR'?PAL[0]:PAL[1])}]},{...nl,indexAxis:'y',scales:{x:money}});
+ const cnt=SL.map(s=>sum(E,e=>Object.values(e.groups).filter(g=>(SL.includes(g.slab)?g.slab:'Gate Opener')===s&&(g.amt||s!=='No slab')).length));
+ mk('c4','doughnut',{labels:SL,datasets:[{data:cnt,backgroundColor:SC}]})}
+function pool(){return S.seg==='All'?S.emps:S.emps.filter(e=>e.team===S.seg)}
+function p2(){const E=pool(),cats=S.cats.filter(c=>E.some(e=>e.groups[c]?.amt));
+ mk('d1','bar',{labels:E.map(e=>e.name),datasets:cats.map((c,i)=>({label:c,data:E.map(e=>e.groups[c]?.amt||0),backgroundColor:PAL[i%10]}))},{scales:{x:{stacked:true},y:{stacked:true,...money}},plugins:{legend:{position:'bottom',labels:{boxWidth:10}}}});
+ const K=E.filter(e=>e.kpi);mk('d2','bar',{labels:K.map(e=>e.name),datasets:[{data:K.map(e=>+(e.kpi*100).toFixed(1)),backgroundColor:PAL[3]}]},{...nl,indexAxis:'y'});
+ mk('d3','doughnut',{labels:cats,datasets:[{data:cats.map(c=>sum(E,e=>e.groups[c]?.amt||0)),backgroundColor:PAL}]});
+ mk('d4','bar',{labels:cats,datasets:SL.map((s,i)=>({label:s,backgroundColor:SC[i],data:cats.map(c=>E.filter(e=>(e.groups[c]?.slab||'No slab')===s).length)}))},{scales:{x:{stacked:true},y:{stacked:true,ticks:{precision:0}}}});
+ const [k,d]=S.sort,val=(e,c)=>c==='name'?e.name:c==='team'?e.team:c==='code'?e.code:c==='payout'||c==='ta'||c==='kpi'?e[c]:(e.groups[c]?.amt||0);
+ const rows=[...E].sort((a,b)=>{const x=val(a,k),y=val(b,k);return(typeof x==='string'?x.localeCompare(y):x-y)*d});
+ const cols=['team','code','name',...cats,'ta','kpi','payout'],H={ta:'TA',kpi:'KPI',payout:'Pay Out',team:'Team',code:'Code',name:'Name'};
+ $('#tb').innerHTML='<thead><tr>'+cols.map(c=>`<th data-c="${c}">${H[c]||c}${k===c?(d>0?' ▲':' ▼'):''}</th>`).join('')+'</tr></thead><tbody>'+rows.map(e=>`<tr data-c="${e.code}" style="cursor:pointer">`+cols.map(c=>{const v=val(e,c);return`<td>${c==='kpi'?(v?pc(v):'–'):typeof v==='number'?fm(v):v}</td>`}).join('')+'</tr>').join('')+'</tbody>'}
+function p3(){const E=S.emps,sel=$('#sel');if(!S.cur||!E.find(e=>e.code===S.cur))S.cur=E[0]?.code;
+ sel.innerHTML=E.map(e=>`<option value="${e.code}">${e.name} (${e.team} · ${e.code})</option>`).join('');sel.value=S.cur;
+ const e=E.find(x=>x.code===S.cur);if(!e)return;const T=E.filter(x=>x.team===e.team),rk=[...T].sort((a,b)=>b.payout-a.payout).findIndex(x=>x.code===e.code)+1;
+ $('#pn').textContent=e.name;$('#pm').textContent=e.code+' · '+e.team+' advisor';
+ $('#pf').innerHTML=[['Pay Out',fm(e.payout)],['TA',fm(e.ta)],['KPI',e.kpi?pc(e.kpi):'–'],['Rank in '+e.team,rk+' of '+T.length],['Total incentive',fm(e.total)],['Categories earning',Object.values(e.groups).filter(g=>g.amt>0).length+' of '+Object.keys(e.groups).length]].map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join('');
+ const cs=Object.keys(e.groups);
+ mk('e1','doughnut',{labels:cs.filter(c=>e.groups[c].amt>0),datasets:[{data:cs.filter(c=>e.groups[c].amt>0).map(c=>e.groups[c].amt),backgroundColor:PAL}]});
+ mk('e2','bar',{labels:cs,datasets:[{label:e.name,data:cs.map(c=>e.groups[c].amt),backgroundColor:PAL[0]},{label:e.team+' average',data:cs.map(c=>sum(T,x=>x.groups[c]?.amt||0)/T.length),backgroundColor:'#cbd5e1'}]},{scales:{y:money}});
+ $('#pt').innerHTML='<thead><tr><th>Category</th><th></th><th></th><th>Achieved</th><th>Slab</th><th>Inc %</th><th>Amount</th></tr></thead><tbody>'+cs.map(c=>{const g=e.groups[c];return`<tr><td>${c}</td><td></td><td></td><td>${g.ach?Math.round(g.ach).toLocaleString('en-IN'):'–'}</td><td>${sl(g.slab)}</td><td>${g.inc?pc(g.inc):'–'}</td><td>${fm(g.amt)}</td></tr>`}).join('')+`<tr><td><b>Total</b></td><td></td><td></td><td></td><td></td><td></td><td><b>${fm(e.total)}</b></td></tr></tbody>`;
+ $('#pt tbody').querySelectorAll('tr').forEach(r=>r.firstChild.style.textAlign='left')}
+function go(n){document.querySelectorAll('.pg').forEach((p,i)=>p.classList.toggle('on',i+1==n));document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.p==n));Object.values(CH).forEach(c=>c.resize())}
+function open_(code){S.cur=code;location.hash='emp='+code;p3();go(3);scrollTo(0,0)}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>go(t.dataset.p));
+$('#seg').onclick=e=>{if(e.target.dataset.t){S.seg=e.target.dataset.t;document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b===e.target));p2()}};
+$('#tb').onclick=e=>{const th=e.target.closest('th'),tr=e.target.closest('tbody tr');if(th){S.sort=[th.dataset.c,S.sort[0]===th.dataset.c?-S.sort[1]:-1];p2()}else if(tr)open_(tr.dataset.c)};
+$('#sel').onchange=e=>open_(e.target.value);
+const link=()=>location.origin+location.pathname+'#emp='+S.cur;
+$('#cp').onclick=()=>{navigator.clipboard.writeText(link());$('#cp').textContent='Copied'};
+$('#wa').onclick=()=>{const e=S.emps.find(x=>x.code===S.cur);open('https://wa.me/?text='+encodeURIComponent(`${e.name}, your incentive report: ${link()}`))};
+$('#rf').onclick=load;
+/* ===== Ask AI (rule-based, runs in the browser) ===== */
+const aiBox=$('#ai');$('#aib').onclick=()=>aiBox.classList.toggle('on');$('#aix').onclick=()=>aiBox.classList.remove('on');
+['Top 5 by payout','Total payout of BP','Average KPI','Who is Elite in Labour?','Who has no payout?','Show Fayas'].forEach(q=>{const b=document.createElement('button');b.className='chip';b.textContent=q;b.onclick=()=>say(q);$('#chips').append(b)});
+function say(q){if(!q.trim())return;const m=$('#msgs');m.insertAdjacentHTML('beforeend',`<div class="m u"></div>`);m.lastChild.textContent=q;m.insertAdjacentHTML('beforeend',`<div class="m a">${ask(q)}</div>`);m.scrollTop=m.scrollHeight;$('#aq').value=''}
+$('#af').onsubmit=e=>{e.preventDefault();say($('#aq').value)};
+function ask(q){
+ if(!S.emps.length)return'The sheet is not loaded yet.';
+ const l=q.toLowerCase();let E=S.emps;const tm=/\bpmgr\b/.test(l)?'PMGR':/\bbp\b/.test(l)?'BP':'';if(tm)E=E.filter(e=>e.team===tm);
+ const emp=S.emps.find(e=>e.code.toLowerCase()===l.trim()||l.includes(e.code.toLowerCase())||e.name.toLowerCase().split(/\s+/).some(w=>w.length>2&&new RegExp('\\b'+w+'\\b').test(l)));
+ const cat=S.cats.find(c=>l.includes(c.toLowerCase()))||S.cats.find(c=>c.toLowerCase().split(/\s+/).some(w=>w.length>3&&!['promotion'].includes(w)&&l.includes(w)));
+ const metric=/kpi/.test(l)?'kpi':/\bta\b/.test(l)?'ta':cat?'cat':'payout',lab={kpi:'KPI',ta:'TA',cat:cat+' amount',payout:'payout'}[metric];
+ const val=e=>metric==='kpi'?e.kpi:metric==='ta'?e.ta:metric==='cat'?(e.groups[cat]?.amt||0):e.payout,f=v=>metric==='kpi'?pc(v):fm(v);
+ const list=a=>'<ol style="margin:4px 0 0;padding-left:18px">'+a.map(x=>`<li>${x}</li>`).join('')+'</ol>';
+ const n=+(l.match(/\b(\d+)\b/)||[])[1]||5,sl_=SL.slice(0,4).find(s=>l.includes(s.toLowerCase()));
+ if(sl_){const r=E.filter(e=>Object.entries(e.groups).some(([c,g])=>g.slab===sl_&&(!cat||c===cat)));return r.length?`${r.length} advisor(s) at <b>${sl_}</b>${cat?' in '+cat:''}:`+list(r.map(e=>`${e.name} (${e.team})`+(cat?'':' – '+Object.entries(e.groups).filter(([,g])=>g.slab===sl_).map(([c])=>c).join(', ')))):`Nobody is at ${sl_}${cat?' in '+cat:''}.`}
+ if(/no payout|zero|nothing|without/.test(l)){const r=E.filter(e=>val(e)===0);return r.length?`${r.length} advisor(s) with zero ${lab}:`+list(r.map(e=>e.name)):'Everyone has a non-zero '+lab+'.'}
+ if(/top|highest|best|most|max/.test(l)){const r=[...E].sort((a,b)=>val(b)-val(a)).slice(0,n);return`Top ${r.length} by ${lab}:`+list(r.map(e=>`${e.name} (${e.team}) – <b>${f(val(e))}</b>`))}
+ if(/low|least|worst|bottom|min/.test(l)){const r=[...E].sort((a,b)=>val(a)-val(b)).slice(0,n);return`Lowest ${r.length} by ${lab}:`+list(r.map(e=>`${e.name} (${e.team}) – <b>${f(val(e))}</b>`))}
+ if(emp&&!/total|sum|average|avg|how many|count/.test(l)){const g=Object.entries(emp.groups).filter(([,x])=>x.amt>0);return`<b>${emp.name}</b> (${emp.team}, ${emp.code})<br>Pay Out ${fm(emp.payout)} · TA ${fm(emp.ta)} · KPI ${emp.kpi?pc(emp.kpi):'–'}`+list(g.map(([c,x])=>`${c}: ${x.slab} – ${fm(x.amt)}`))+`<a href="#emp=${emp.code}" onclick="open_('${emp.code}');return false">Open full report</a>`}
+ if(/how many|count|number of/.test(l))return`${E.length} advisors${tm?' in '+tm:' ('+['PMGR','BP'].map(t=>t+' '+S.emps.filter(e=>e.team===t).length).join(', ')+')'}.`;
+ if(/average|avg|mean/.test(l)){const k=E.filter(e=>val(e)>0||metric==='payout');return`Average ${lab}${tm?' ('+tm+')':''}: <b>${f(sum(k,val)/(k.length||1))}</b> across ${k.length} advisors.`}
+ if(/total|sum|overall/.test(l))return`Total ${lab}${tm?' ('+tm+')':''}: <b>${f(sum(E,val))}</b>.`;
+ return'I can answer things like: <i>top 5 by payout</i>, <i>lowest KPI in BP</i>, <i>total VAS amount</i>, <i>average TA</i>, <i>who is Elite in Parts</i>, <i>who has no payout</i>, <i>show Rahul</i>. Add PMGR or BP to limit the team.'}
+/* ===== boot ===== */
+addEventListener('hashchange',()=>{const m=location.hash.match(/emp=(.+)/);if(m){S.cur=decodeURIComponent(m[1]);p3();go(3)}});
+const m0=location.hash.match(/emp=(.+)/);if(m0){S.cur=decodeURIComponent(m0[1]);go(3)}
+load();setInterval(load,CONFIG.refreshSec*1000);
+</script></body></html>

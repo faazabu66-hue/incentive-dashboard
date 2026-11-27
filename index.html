@@ -107,11 +107,14 @@ const fm=n=>'₹'+Math.round(n).toLocaleString('en-IN'),pc=n=>(n*100).toFixed(1)
 const num=s=>{s=String(s??'').trim();if(!s||s==='-')return 0;const n=parseFloat(s.replace(/[,%₹\s]/g,''));return isNaN(n)?0:s.endsWith('%')?n/100:n};
 function csv(t){const r=[];let w=[],c='',q=0;for(let i=0;i<t.length;i++){const h=t[i];if(q){if(h=='"'){if(t[i+1]=='"'){c+='"';i++}else q=0}else c+=h}else if(h=='"')q=1;else if(h==','){w.push(c);c=''}else if(h=='\n'){w.push(c);r.push(w);w=[];c=''}else if(h!='\r')c+=h}w.push(c);r.push(w);return r}
 function parse(rows,team){
- const hi=rows.findIndex(r=>r.some(c=>c.trim().toLowerCase()==='code'));if(hi<0)throw Error('No header row with "Code" in '+team+' tab');
- const h2=rows[hi],h1=rows[hi-1]||[],F={achieved:'ach',slab:'slab',inc:'inc',amount:'amt'};let cur='';const map=h2.map((_,j)=>{
-  const a=(h1[j]||'').trim(),b=(h2[j]||'').trim();if(a)cur=a;const k=(b||a).toLowerCase().replace(/[\s%]/g,'');
-  if(k==='code'||k==='name'||k==='ta'||k==='kpi'||k==='payout')return{t:k};
-  if(F[k]&&cur)return{t:F[k],g:cur};return null});
+ const K=s=>String(s||'').toLowerCase().replace(/[\s%]/g,'').replace(/^(.+)\1$/,'$1');
+ const hi=rows.findIndex(r=>r.some(c=>K(c)==='code'));if(hi<0)throw Error('No column named "Code" in '+team+' tab');
+ const F={achieved:'ach',slab:'slab',inc:'inc',amount:'amt'};let cur='';
+ const map=rows[hi].map(l=>{l=String(l||'').trim();const k=K(l);
+  if(['code','name','ta','kpi','payout'].includes(k))return{t:k};
+  const m=l.match(/^(.*?)\s*(Achieved|Slab|Inc\s*%?|Amount)$/i);
+  if(m){const g=m[1].trim();if(g)cur=g;const f=F[K(m[2])];if(f&&cur)return{t:f,g:cur}}
+  return null});
  const ni=map.findIndex(m=>m&&m.t==='name'),ci=map.findIndex(m=>m&&m.t==='code');
  return rows.slice(hi+1).filter(r=>(r[ni]||'').trim()&&(r[ci]||'').trim()).map(r=>{
   const e={team,groups:{},ta:0,kpi:0,payout:0};
@@ -124,7 +127,7 @@ function parse(rows,team){
 async function load(){
  try{let all=[];
   for(const t of CONFIG.tabs){
-   const u=`https://docs.google.com/spreadsheets/d/${CONFIG.sheetId}/gviz/tq?tqx=out:csv&headers=0&`+(t.gid?'gid='+t.gid:'sheet='+encodeURIComponent(t.tab))+'&_='+Date.now();
+   const u=`https://docs.google.com/spreadsheets/d/${CONFIG.sheetId}/gviz/tq?tqx=out:csv&headers=2&`+(t.gid?'gid='+t.gid:'sheet='+encodeURIComponent(t.tab))+'&_='+Date.now();
    const res=await fetch(u);if(!res.ok)throw Error('Cannot read "'+t.tab+'" (HTTP '+res.status+')');
    const txt=await res.text();if(txt.trim().startsWith('<'))throw Error('Sheet is private. Share it as "Anyone with the link can view".');
    all=all.concat(parse(csv(txt),t.team))}
